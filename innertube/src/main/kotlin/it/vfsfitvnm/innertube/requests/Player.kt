@@ -15,7 +15,9 @@ import kotlinx.serialization.Serializable
 
 suspend fun Innertube.player(body: PlayerBody) = runCatchingNonCancellable {
     val response = client.post(player) {
-        setBody(body)
+        setBody(
+            body.copy(context = Context.DefaultIOS)
+        )
         mask("playabilityStatus.status,playerConfig.audioConfig,streamingData.adaptiveFormats,videoDetails.videoId")
     }.body<PlayerResponse>()
 

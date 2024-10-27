@@ -11,7 +11,7 @@ data class Context(
     data class Client(
         val clientName: String,
         val clientVersion: String,
-        val platform: String,
+        val platform: String? = null,
         val hl: String = "en",
         val visitorData: String = "CgtEUlRINDFjdm1YayjX1pSaBg%3D%3D",
         val androidSdkVersion: Int? = null,
@@ -29,6 +29,14 @@ data class Context(
                 clientName = "WEB_REMIX",
                 clientVersion = "1.20220918",
                 platform = "DESKTOP",
+            )
+        )
+
+        val DefaultIOS = Context(
+            client = Client(
+                clientName = "IOS",
+                clientVersion = "19.29.1",
+                userAgent = "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)"
             )
         )
 
