@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import it.vfsfitvnm.innertube.Innertube
 import it.vfsfitvnm.vimusic.Database
 import it.vfsfitvnm.vimusic.models.PlaylistPreview
 import it.vfsfitvnm.vimusic.ui.components.themed.TextPlaceholder
@@ -39,7 +40,6 @@ import it.vfsfitvnm.vimusic.utils.medium
 import it.vfsfitvnm.vimusic.utils.secondary
 import it.vfsfitvnm.vimusic.utils.semiBold
 import it.vfsfitvnm.vimusic.utils.thumbnail
-import it.vfsfitvnm.innertube.Innertube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -203,11 +203,7 @@ fun PlaylistItem(
                 .background(color = colorPalette.background1)
                 .requiredSize(thumbnailSizeDp)
         ) {
-            thumbnailContent(
-                modifier = Modifier
-                    .fillMaxSize()
-            )
-
+            thumbnailContent(Modifier.fillMaxSize())
             songCount?.let {
                 BasicText(
                     text = "$songCount",

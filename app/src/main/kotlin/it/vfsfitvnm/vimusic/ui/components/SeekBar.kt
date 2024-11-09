@@ -2,7 +2,7 @@ package it.vfsfitvnm.vimusic.ui.components
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.core.rememberTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -46,7 +46,7 @@ fun SeekBar(
         MutableTransitionState(false)
     }
 
-    val transition = updateTransition(transitionState = isDragging, label = null)
+    val transition = rememberTransition(transitionState = isDragging, label = null)
 
     val currentBarHeight by transition.animateDp(label = "") { if (it) scrubberRadius else barHeight }
     val currentScrubberRadius by transition.animateDp(label = "") { if (it) 0.dp else scrubberRadius }

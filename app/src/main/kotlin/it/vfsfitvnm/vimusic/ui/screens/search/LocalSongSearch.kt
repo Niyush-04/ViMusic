@@ -130,7 +130,7 @@ fun LocalSongSearch(
                                 )
                             }
                         )
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }

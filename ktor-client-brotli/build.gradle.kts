@@ -1,9 +1,5 @@
 plugins {
-    kotlin("jvm")
-}
-
-sourceSets.all {
-    java.srcDir("src/$name/kotlin")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 dependencies {

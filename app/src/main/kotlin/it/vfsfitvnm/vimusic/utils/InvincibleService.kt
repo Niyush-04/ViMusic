@@ -105,7 +105,6 @@ abstract class InvincibleService : Service() {
             if (shouldBeInvincible() && isAllowedToStartForegroundServices) {
                 notification()?.let { notification ->
                     startForeground(notificationId, notification)
-                    stopForeground(false)
                     handler.postDelayed(this, intervalMs)
                 }
             }

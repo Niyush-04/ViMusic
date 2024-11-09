@@ -1,6 +1,5 @@
 package it.vfsfitvnm.vimusic.service
 
-import android.os.Binder as AndroidBinder
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
@@ -41,6 +40,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
@@ -56,11 +56,11 @@ import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.analytics.PlaybackStats
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.DefaultAudioOffloadSupportProvider
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink.DefaultAudioProcessorChain
 import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
-import androidx.media3.exoplayer.audio.SonicAudioProcessor
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
@@ -106,8 +106,6 @@ import it.vfsfitvnm.vimusic.utils.skipSilenceKey
 import it.vfsfitvnm.vimusic.utils.timer
 import it.vfsfitvnm.vimusic.utils.trackLoopEnabledKey
 import it.vfsfitvnm.vimusic.utils.volumeNormalizationKey
-import kotlin.math.roundToInt
-import kotlin.system.exitProcess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -117,8 +115,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
+import kotlin.math.roundToInt
+import kotlin.system.exitProcess
+import android.os.Binder as AndroidBinder
 
 @Suppress("DEPRECATION")
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListener.Callback,
     SharedPreferences.OnSharedPreferenceChangeListener {
     private lateinit var mediaSession: MediaSession
@@ -234,7 +236,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
         player.repeatMode = when {
             preferences.getBoolean(trackLoopEnabledKey, false) -> Player.REPEAT_MODE_ONE
-            preferences.getBoolean(queueLoopEnabledKey, true) -> Player.REPEAT_MODE_ALL
+            preferences.getBoolean(queueLoopEnabledKey, false) -> Player.REPEAT_MODE_ALL
             else -> Player.REPEAT_MODE_OFF
         }
 
@@ -619,28 +621,37 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         }
     }
 
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences, key: String) {
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         when (key) {
-            persistentQueueKey -> isPersistentQueueEnabled =
-                sharedPreferences.getBoolean(key, isPersistentQueueEnabled)
+            persistentQueueKey -> if (sharedPreferences != null) {
+                isPersistentQueueEnabled =
+                    sharedPreferences.getBoolean(key, isPersistentQueueEnabled)
+            }
 
             volumeNormalizationKey -> maybeNormalizeVolume()
 
             resumePlaybackWhenDeviceConnectedKey -> maybeResumePlaybackWhenDeviceConnected()
 
-            isInvincibilityEnabledKey -> isInvincibilityEnabled =
-                sharedPreferences.getBoolean(key, isInvincibilityEnabled)
+            isInvincibilityEnabledKey -> if (sharedPreferences != null) {
+                isInvincibilityEnabled =
+                    sharedPreferences.getBoolean(key, isInvincibilityEnabled)
+            }
 
-            skipSilenceKey -> player.skipSilenceEnabled = sharedPreferences.getBoolean(key, false)
+            skipSilenceKey -> if (sharedPreferences != null) {
+                player.skipSilenceEnabled = sharedPreferences.getBoolean(key, false)
+            }
+
             isShowingThumbnailInLockscreenKey -> {
-                isShowingThumbnailInLockscreen = sharedPreferences.getBoolean(key, true)
+                if (sharedPreferences != null) {
+                    isShowingThumbnailInLockscreen = sharedPreferences.getBoolean(key, true)
+                }
                 maybeShowSongCoverInLockScreen()
             }
 
             trackLoopEnabledKey, queueLoopEnabledKey -> {
                 player.repeatMode = when {
                     preferences.getBoolean(trackLoopEnabledKey, false) -> Player.REPEAT_MODE_ONE
-                    preferences.getBoolean(queueLoopEnabledKey, true) -> Player.REPEAT_MODE_ALL
+                    preferences.getBoolean(queueLoopEnabledKey, false) -> Player.REPEAT_MODE_ALL
                     else -> Player.REPEAT_MODE_OFF
                 }
             }
@@ -845,7 +856,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         val audioSink = DefaultAudioSink.Builder()
             .setEnableFloatOutput(false)
             .setEnableAudioTrackPlaybackParams(false)
-            .setOffloadMode(DefaultAudioSink.OFFLOAD_MODE_DISABLED)
+            .setAudioOffloadSupportProvider(DefaultAudioOffloadSupportProvider(applicationContext))
             .setAudioProcessorChain(
                 DefaultAudioProcessorChain(
                     emptyArray(),

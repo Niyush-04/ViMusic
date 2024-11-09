@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -47,46 +54,36 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="music.youtube.com"
-                    android:pathPrefix="/playlist"
-                    android:scheme="https" />
-                <data
-                    android:host="www.youtube.com"
-                    android:pathPrefix="/playlist"
-                    android:scheme="https" />
-                <data
-                    android:host="m.youtube.com"
-                    android:pathPrefix="/playlist"
-                    android:scheme="https" />
-                <data
-                    android:host="music.youtube.com"
-                    android:pathPrefix="/watch"
-                    android:scheme="https" />
-                <data
-                    android:host="www.youtube.com"
-                    android:pathPrefix="/watch"
-                    android:scheme="https" />
-                <data
-                    android:host="m.youtube.com"
-                    android:pathPrefix="/watch"
-                    android:scheme="https" />
-                <data
-                    android:host="youtu.be"
-                    android:pathPrefix="/"
-                    android:scheme="https" />
-                <data
-                    android:host="music.youtube.com"
-                    android:pathPrefix="/channel"
-                    android:scheme="https" />
-                <data
-                    android:host="www.youtube.com"
-                    android:pathPrefix="/channel"
-                    android:scheme="https" />
-                <data
-                    android:host="m.youtube.com"
-                    android:pathPrefix="/c"
-                    android:scheme="https" />
+                <data android:scheme="https"/>
+                <data android:host="music.youtube.com"/>
+                <data android:pathPrefix="/playlist"/>
+                <data android:scheme="https"/>
+                <data android:host="www.youtube.com"/>
+                <data android:pathPrefix="/playlist"/>
+                <data android:scheme="https"/>
+                <data android:host="m.youtube.com"/>
+                <data android:pathPrefix="/playlist"/>
+                <data android:scheme="https"/>
+                <data android:host="music.youtube.com"/>
+                <data android:pathPrefix="/watch"/>
+                <data android:scheme="https"/>
+                <data android:host="www.youtube.com"/>
+                <data android:pathPrefix="/watch"/>
+                <data android:scheme="https"/>
+                <data android:host="m.youtube.com"/>
+                <data android:pathPrefix="/watch"/>
+                <data android:scheme="https"/>
+                <data android:host="youtu.be"/>
+                <data android:pathPrefix="/"/>
+                <data android:scheme="https"/>
+                <data android:host="music.youtube.com"/>
+                <data android:pathPrefix="/channel"/>
+                <data android:scheme="https"/>
+                <data android:host="www.youtube.com"/>
+                <data android:pathPrefix="/channel"/>
+                <data android:scheme="https"/>
+                <data android:host="m.youtube.com"/>
+                <data android:pathPrefix="/c"/>
             </intent-filter>
         </activity>
 
@@ -97,7 +94,7 @@
         </service>
 
         <service android:name=".service.PlayerMediaBrowserService"
-            android:exported="true"
+            android:exported="false"
             android:enabled="false">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>

@@ -180,7 +180,7 @@ fun HomeSongs(
                                 )
                             }
                         )
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }

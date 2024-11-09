@@ -1,5 +1,7 @@
 package it.vfsfitvnm.vimusic.ui.screens.home
 
+import android.annotation.SuppressLint
+import androidx.annotation.OptIn
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.media3.common.util.UnstableApi
 import it.vfsfitvnm.compose.persist.persist
 import it.vfsfitvnm.innertube.Innertube
 import it.vfsfitvnm.innertube.models.NavigationEndpoint
@@ -75,6 +78,8 @@ import it.vfsfitvnm.vimusic.utils.secondary
 import it.vfsfitvnm.vimusic.utils.semiBold
 import kotlinx.coroutines.flow.distinctUntilChanged
 
+@OptIn(UnstableApi::class)
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 @Composable
@@ -206,7 +211,7 @@ fun QuickPicks(
                                             )
                                         }
                                     )
-                                    .animateItemPlacement()
+                                    .animateItem()
                                     .width(itemInHorizontalGridWidth)
                             )
                         }
@@ -240,7 +245,7 @@ fun QuickPicks(
                                         )
                                     }
                                 )
-                                .animateItemPlacement()
+                                .animateItem()
                                 .width(itemInHorizontalGridWidth)
                         )
                     }

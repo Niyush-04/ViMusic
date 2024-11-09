@@ -130,7 +130,7 @@ fun HomeArtistList(
                     alternative = true,
                     modifier = Modifier
                         .clickable(onClick = { onArtistClick(artist) })
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }

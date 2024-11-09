@@ -7,4 +7,4 @@ import androidx.compose.ui.Modifier
 context(LazyItemScope)
 @ExperimentalFoundationApi
 fun Modifier.animateItemPlacement(reorderingState: ReorderingState) =
-    if (reorderingState.draggingIndex == -1) animateItemPlacement() else this
+    if (reorderingState.draggingIndex == -1) animateItem() else this

@@ -170,7 +170,7 @@ fun HomePlaylists(
                     alternative = true,
                     modifier = Modifier
                         .clickable(onClick = { onBuiltInPlaylist(BuiltInPlaylist.Favorites) })
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
 
@@ -184,7 +184,7 @@ fun HomePlaylists(
                     alternative = true,
                     modifier = Modifier
                         .clickable(onClick = { onBuiltInPlaylist(BuiltInPlaylist.Offline) })
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
 
@@ -196,7 +196,7 @@ fun HomePlaylists(
                     alternative = true,
                     modifier = Modifier
                         .clickable(onClick = { onPlaylistClick(playlistPreview.playlist) })
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }

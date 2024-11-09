@@ -5,8 +5,10 @@ import android.content.Context
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase.CONFLICT_IGNORE
 import android.os.Parcel
+import androidx.annotation.OptIn
 import androidx.core.database.getFloatOrNull
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.room.AutoMigration
 import androidx.room.Dao
 import androidx.room.Delete
@@ -38,7 +40,6 @@ import it.vfsfitvnm.vimusic.enums.SongSortBy
 import it.vfsfitvnm.vimusic.enums.SortOrder
 import it.vfsfitvnm.vimusic.models.Album
 import it.vfsfitvnm.vimusic.models.Artist
-import it.vfsfitvnm.vimusic.models.SongWithContentLength
 import it.vfsfitvnm.vimusic.models.Event
 import it.vfsfitvnm.vimusic.models.Format
 import it.vfsfitvnm.vimusic.models.Info
@@ -52,9 +53,10 @@ import it.vfsfitvnm.vimusic.models.Song
 import it.vfsfitvnm.vimusic.models.SongAlbumMap
 import it.vfsfitvnm.vimusic.models.SongArtistMap
 import it.vfsfitvnm.vimusic.models.SongPlaylistMap
+import it.vfsfitvnm.vimusic.models.SongWithContentLength
 import it.vfsfitvnm.vimusic.models.SortedSongPlaylistMap
-import kotlin.jvm.Throws
 import kotlinx.coroutines.flow.Flow
+import kotlin.jvm.Throws
 
 @Dao
 interface Database {
@@ -118,7 +120,7 @@ interface Database {
     @Query("DELETE FROM QueuedMediaItem")
     fun clearQueue()
 
-    @Query("SELECT * FROM SearchQuery WHERE query LIKE :query ORDER BY id DESC")
+    @Query("SELECT * FROM SearchQuery WHERE :query LIKE :query ORDER BY id DESC")
     fun queries(query: String): Flow<List<SearchQuery>>
 
     @Query("SELECT COUNT (*) FROM SearchQuery")
@@ -224,27 +226,27 @@ interface Database {
     fun playlistWithSongs(id: Long): Flow<PlaylistWithSongs?>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY name ASC")
+    @Query("SELECT id, name, browseId, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY name ASC")
     fun playlistPreviewsByNameAsc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY ROWID ASC")
+    @Query("SELECT id, name, browseId, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY ROWID ASC")
     fun playlistPreviewsByDateAddedAsc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY songCount ASC")
+    @Query("SELECT id, name, browseId, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY songCount ASC")
     fun playlistPreviewsByDateSongCountAsc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY name DESC")
+    @Query("SELECT id, name, browseId, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY name DESC")
     fun playlistPreviewsByNameDesc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY ROWID DESC")
+    @Query("SELECT id, name, browseId, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY ROWID DESC")
     fun playlistPreviewsByDateAddedDesc(): Flow<List<PlaylistPreview>>
 
     @Transaction
-    @Query("SELECT id, name, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY songCount DESC")
+    @Query("SELECT id, name, browseId, (SELECT COUNT(*) FROM SongPlaylistMap WHERE playlistId = id) as songCount FROM Playlist ORDER BY songCount DESC")
     fun playlistPreviewsByDateSongCountDesc(): Flow<List<PlaylistPreview>>
 
     fun playlistPreviews(
@@ -641,6 +643,7 @@ abstract class DatabaseInitializer protected constructor() : RoomDatabase() {
 
 @TypeConverters
 object Converters {
+    @OptIn(UnstableApi::class)
     @TypeConverter
     fun mediaItemFromByteArray(value: ByteArray?): MediaItem? {
         return value?.let { byteArray ->
@@ -651,11 +654,12 @@ object Converters {
                 val bundle = parcel.readBundle(MediaItem::class.java.classLoader)
                 parcel.recycle()
 
-                bundle?.let(MediaItem.CREATOR::fromBundle)
+                bundle?.let(MediaItem::fromBundle)
             }.getOrNull()
         }
     }
 
+    @OptIn(UnstableApi::class)
     @TypeConverter
     fun mediaItemToByteArray(mediaItem: MediaItem?): ByteArray? {
         return mediaItem?.toBundle()?.let { persistableBundle ->

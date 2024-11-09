@@ -1,0 +1,57 @@
+[versions]
+activityCompose = "1.9.3"
+agp = "8.7.2"
+brotli = "0.1.2"
+coil = "2.7.0"
+# @keep
+compileSdk = "34"
+composeBom = "2024.10.01"
+compose-shimmer = "1.3.1"
+desugaring = "2.1.3"
+junit = "4.13.2"
+kotlin = "2.0.21"
+kotlin-coroutines = "1.9.0"
+kotlin-ksp = "2.0.21-1.0.26"
+ktor = "2.3.7"
+media3 = "1.4.1"
+# @keep
+minSdk = "21"
+palette = "1.0.0"
+room = "2.6.1"
+# @keep
+targetSdk = "33"
+
+[libraries]
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+brotli = { group = "org.brotli", name = "dec", version.ref = "brotli" }
+compose-coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+compose-material-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-ripple = { group = "androidx.compose.material", name = "material-ripple" }
+compose-shimmer = { group = "com.valentinilk.shimmer", name = "compose-shimmer", version.ref = "compose-shimmer" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-util = { group = "androidx.compose.ui", name = "ui-util" }
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring" }
+exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+kotlin-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor" }
+ktor-client-serialization = { group = "io.ktor", name = "ktor-client-serialization", version.ref = "ktor" }
+ktor-serialization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+palette = { group = "androidx.palette", name = "palette", version.ref = "palette" }
+room = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "kotlin-ksp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

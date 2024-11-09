@@ -1,28 +1,21 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    kotlin("kapt")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlin.ksp)
 }
 
 android {
-    compileSdk = 33
+    compileSdk = libs.versions.compileSdk.get().toInt()
+    namespace = "it.vfsfitvnm.vimusic"
 
     defaultConfig {
         applicationId = "it.vfsfitvnm.vimusic"
-        minSdk = 21
-        targetSdk = 33
-        versionCode = 20
-        versionName = "0.5.4"
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = 21
+        versionName = "0.6.0"
     }
-
-    splits {
-        abi {
-            reset()
-            isUniversalApk = true
-        }
-    }
-
-    namespace = "it.vfsfitvnm.vimusic"
 
     buildTypes {
         debug {
@@ -39,58 +32,45 @@ android {
         }
     }
 
-    sourceSets.all {
-        kotlin.srcDir("src/$name/kotlin")
-    }
-
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         freeCompilerArgs += "-Xcontext-receivers"
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 }
 
-kapt {
-    arguments {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
     implementation(projects.composePersist)
-    implementation(projects.composeRouting)
     implementation(projects.composeReordering)
-
-    implementation(libs.compose.activity)
-    implementation(libs.compose.foundation)
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.util)
-    implementation(libs.compose.ripple)
-    implementation(libs.compose.shimmer)
-    implementation(libs.compose.coil)
-
-    implementation(libs.palette)
-
-    implementation(libs.exoplayer)
-
-    implementation(libs.room)
-    kapt(libs.room.compiler)
-
+    implementation(projects.composeRouting)
     implementation(projects.innertube)
     implementation(projects.kugou)
-
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.compose.coil)
+    implementation(libs.compose.material.icons)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ripple)
+    implementation(libs.compose.shimmer)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.util)
+    implementation(libs.exoplayer)
+    implementation(libs.palette)
+    implementation(libs.room)
     coreLibraryDesugaring(libs.desugaring)
+    ksp(libs.room.compiler)
 }

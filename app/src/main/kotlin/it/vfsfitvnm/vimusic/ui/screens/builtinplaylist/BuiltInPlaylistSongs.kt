@@ -149,7 +149,7 @@ fun BuiltInPlaylistSongs(builtInPlaylist: BuiltInPlaylist) {
                                 )
                             }
                         )
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }
