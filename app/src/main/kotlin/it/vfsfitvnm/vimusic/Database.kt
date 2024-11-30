@@ -482,11 +482,10 @@ abstract class DatabaseInitializer protected constructor() : RoomDatabase() {
     companion object {
         lateinit var Instance: DatabaseInitializer
 
-        context(Context)
-        operator fun invoke() {
+        fun initialize(context: Context){
             if (!::Instance.isInitialized) {
                 Instance = Room
-                    .databaseBuilder(this@Context, DatabaseInitializer::class.java, "data.db")
+                    .databaseBuilder(context, DatabaseInitializer::class.java, "data.db")
                     .addMigrations(
                         From8To9Migration(),
                         From10To11Migration(),
@@ -673,16 +672,16 @@ object Converters {
     }
 }
 
+fun query(block: () -> Unit) =
+    DatabaseInitializer.Instance.queryExecutor.execute(block)
+
+fun transaction(block: () -> Unit) =
+    DatabaseInitializer.Instance.transactionExecutor.execute {
+        DatabaseInitializer.Instance.runInTransaction(block)
+}
+
 val Database.internal: RoomDatabase
     get() = DatabaseInitializer.Instance
-
-fun query(block: () -> Unit) = DatabaseInitializer.Instance.queryExecutor.execute(block)
-
-fun transaction(block: () -> Unit) = with(DatabaseInitializer.Instance) {
-    transactionExecutor.execute {
-        runInTransaction(block)
-    }
-}
 
 val RoomDatabase.path: String?
     get() = openHelper.writableDatabase.path

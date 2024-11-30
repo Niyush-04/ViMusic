@@ -11,8 +11,8 @@ import coil.request.Disposable
 import coil.request.ImageRequest
 import it.vfsfitvnm.vimusic.utils.thumbnail
 
-context(Context)
 class BitmapProvider(
+    private val context: Context,
     private val bitmapSize: Int,
     private val colorProvider: (isSystemInDarkMode: Boolean) -> Int
 ) {
@@ -40,7 +40,7 @@ class BitmapProvider(
     }
 
     fun setDefaultBitmap(): Boolean {
-        val isSystemInDarkMode = resources.configuration.uiMode and
+        val isSystemInDarkMode = context.resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
         if (::defaultBitmap.isInitialized && isSystemInDarkMode == lastIsSystemInDarkMode) return false
@@ -61,8 +61,8 @@ class BitmapProvider(
         lastEnqueued?.dispose()
         lastUri = uri
 
-        lastEnqueued = applicationContext.imageLoader.enqueue(
-            ImageRequest.Builder(applicationContext)
+        lastEnqueued = context.applicationContext.imageLoader.enqueue(
+            ImageRequest.Builder(context.applicationContext)
                 .data(uri.thumbnail(bitmapSize))
                 .allowHardware(false)
                 .listener(

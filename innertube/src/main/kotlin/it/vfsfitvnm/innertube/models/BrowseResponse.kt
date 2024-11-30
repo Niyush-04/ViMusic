@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package it.vfsfitvnm.innertube.models
 
 import kotlinx.serialization.ExperimentalSerializationApi

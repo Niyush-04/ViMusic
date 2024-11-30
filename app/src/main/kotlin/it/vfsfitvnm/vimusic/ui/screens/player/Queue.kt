@@ -255,35 +255,37 @@ fun Queue(
                                         .size(18.dp)
                                 )
                             },
-                            modifier = Modifier
-                                .combinedClickable(
-                                    onLongClick = {
-                                        menuState.display {
-                                            QueuedMediaItemMenu(
-                                                mediaItem = window.mediaItem,
-                                                indexInQueue = if (isPlayingThisMediaItem) null else window.firstPeriodIndex,
-                                                onDismiss = menuState::hide
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        if (isPlayingThisMediaItem) {
-                                            if (shouldBePlaying) {
-                                                player.pause()
-                                            } else {
-                                                player.play()
+                            modifier = animateItemPlacement(
+                                modifier = Modifier
+                                    .combinedClickable(
+                                        onLongClick = {
+                                            menuState.display {
+                                                QueuedMediaItemMenu(
+                                                    mediaItem = window.mediaItem,
+                                                    indexInQueue = if (isPlayingThisMediaItem) null else window.firstPeriodIndex,
+                                                    onDismiss = menuState::hide
+                                                )
                                             }
-                                        } else {
-                                            player.seekToDefaultPosition(window.firstPeriodIndex)
-                                            player.playWhenReady = true
+                                        },
+                                        onClick = {
+                                            if (isPlayingThisMediaItem) {
+                                                if (shouldBePlaying) {
+                                                    player.pause()
+                                                } else {
+                                                    player.play()
+                                                }
+                                            } else {
+                                                player.seekToDefaultPosition(window.firstPeriodIndex)
+                                                player.playWhenReady = true
+                                            }
                                         }
-                                    }
-                                )
-                                .animateItemPlacement(reorderingState = reorderingState)
-                                .draggedItem(
-                                    reorderingState = reorderingState,
-                                    index = window.firstPeriodIndex
-                                )
+                                    )
+                                    .draggedItem(
+                                        reorderingState = reorderingState,
+                                        index = window.firstPeriodIndex
+                                    ),
+                                reorderingState = reorderingState
+                            )
                         )
                     }
 
@@ -369,13 +371,14 @@ fun Queue(
                     AnimatedContent(
                         targetState = queueLoopEnabled,
                         transitionSpec = {
-                            val slideDirection = if (targetState) AnimatedContentTransitionScope.SlideDirection.Up else AnimatedContentTransitionScope.SlideDirection.Down
+                            val slideDirection =
+                                if (targetState) AnimatedContentTransitionScope.SlideDirection.Up else AnimatedContentTransitionScope.SlideDirection.Down
 
                             ContentTransform(
                                 targetContentEnter = slideIntoContainer(slideDirection) + fadeIn(),
                                 initialContentExit = slideOutOfContainer(slideDirection) + fadeOut(),
                             )
-                        }
+                        }, label = "AnimatedContent"
                     ) {
                         BasicText(
                             text = if (it) "on" else "off",

@@ -2,7 +2,6 @@ package it.vfsfitvnm.vimusic
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.SharedPreferences
@@ -118,7 +117,7 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
 
     override fun onStart() {
         super.onStart()
-        bindService(intent<PlayerService>(), serviceConnection, Context.BIND_AUTO_CREATE)
+        bindService(intent<PlayerService>(), serviceConnection, BIND_AUTO_CREATE)
     }
 
     @SuppressLint("UnusedBoxWithConstraintsScope")

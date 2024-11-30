@@ -184,7 +184,11 @@ fun LocalPlaylistSongs(
                                                 transaction {
                                                     runBlocking(Dispatchers.IO) {
                                                         withContext(Dispatchers.IO) {
-                                                            Innertube.playlistPage(BrowseBody(browseId = browseId))
+                                                            Innertube.playlistPage(
+                                                                BrowseBody(
+                                                                    browseId = browseId
+                                                                )
+                                                            )
                                                                 ?.completed()
                                                         }
                                                     }?.getOrNull()?.let { remotePlaylist ->
@@ -251,29 +255,31 @@ fun LocalPlaylistSongs(
                                 .size(18.dp)
                         )
                     },
-                    modifier = Modifier
-                        .combinedClickable(
-                            onLongClick = {
-                                menuState.display {
-                                    InPlaylistMediaItemMenu(
-                                        playlistId = playlistId,
-                                        positionInPlaylist = index,
-                                        song = song,
-                                        onDismiss = menuState::hide
-                                    )
-                                }
-                            },
-                            onClick = {
-                                playlistWithSongs?.songs
-                                    ?.map(Song::asMediaItem)
-                                    ?.let { mediaItems ->
-                                        binder?.stopRadio()
-                                        binder?.player?.forcePlayAtIndex(mediaItems, index)
+                    modifier = animateItemPlacement(
+                        modifier = Modifier
+                            .combinedClickable(
+                                onLongClick = {
+                                    menuState.display {
+                                        InPlaylistMediaItemMenu(
+                                            playlistId = playlistId,
+                                            positionInPlaylist = index,
+                                            song = song,
+                                            onDismiss = menuState::hide
+                                        )
                                     }
-                            }
-                        )
-                        .animateItemPlacement(reorderingState = reorderingState)
-                        .draggedItem(reorderingState = reorderingState, index = index)
+                                },
+                                onClick = {
+                                    playlistWithSongs?.songs
+                                        ?.map(Song::asMediaItem)
+                                        ?.let { mediaItems ->
+                                            binder?.stopRadio()
+                                            binder?.player?.forcePlayAtIndex(mediaItems, index)
+                                        }
+                                }
+                            )
+                            .draggedItem(reorderingState = reorderingState, index = index),
+                        reorderingState = reorderingState
+                    )
                 )
             }
         }

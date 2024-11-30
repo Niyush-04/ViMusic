@@ -168,7 +168,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     private var isNotificationStarted = false
 
     override val notificationId: Int
-        get() = NotificationId
+        get() = NOTIFICATION_ID
 
     private lateinit var notificationActionReceiver: NotificationActionReceiver
 
@@ -181,6 +181,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         super.onCreate()
 
         bitmapProvider = BitmapProvider(
+            context = applicationContext,
             bitmapSize = (256 * resources.displayMetrics.density).roundToInt(),
             colorProvider = { isSystemInDarkMode ->
                 if (isSystemInDarkMode) Color.BLACK else Color.WHITE
@@ -299,7 +300,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         if (bitmapProvider.setDefaultBitmap() && player.currentMediaItem != null) {
-            notificationManager?.notify(NotificationId, notification())
+            notificationManager?.notify(NOTIFICATION_ID, notification())
         }
         super.onConfigurationChanged(newConfig)
     }
@@ -456,7 +457,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
                 isNotificationStarted = true
                 startForegroundService(this@PlayerService, intent<PlayerService>())
-                startForeground(NotificationId, notification())
+                startForeground(NOTIFICATION_ID, notification())
             }
         }
     }
@@ -599,14 +600,14 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 makeInvincible(false)
                 stopForeground(false)
                 sendCloseEqualizerIntent()
-                notificationManager?.cancel(NotificationId)
+                notificationManager?.cancel(NOTIFICATION_ID)
                 return
             }
 
             if (player.shouldBePlaying && !isNotificationStarted) {
                 isNotificationStarted = true
                 startForegroundService(this@PlayerService, intent<PlayerService>())
-                startForeground(NotificationId, notification)
+                startForeground(NOTIFICATION_ID, notification)
                 makeInvincible(false)
                 sendOpenEqualizerIntent()
             } else {
@@ -616,7 +617,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                     makeInvincible(true)
                     sendCloseEqualizerIntent()
                 }
-                notificationManager?.notify(NotificationId, notification)
+                notificationManager?.notify(NOTIFICATION_ID, notification)
             }
         }
     }
@@ -661,15 +662,15 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     override fun notification(): Notification? {
         if (player.currentMediaItem == null) return null
 
-        val playIntent = Action.play.pendingIntent
-        val pauseIntent = Action.pause.pendingIntent
-        val nextIntent = Action.next.pendingIntent
-        val prevIntent = Action.previous.pendingIntent
+        val playIntent = Action.play.getPendingIntent(this)
+        val pauseIntent = Action.pause.getPendingIntent(this)
+        val nextIntent = Action.next.getPendingIntent(this)
+        val prevIntent = Action.previous.getPendingIntent(this)
 
         val mediaMetadata = player.mediaMetadata
 
         val builder = if (isAtLeastAndroid8) {
-            Notification.Builder(applicationContext, NotificationChannelId)
+            Notification.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
         } else {
             Notification.Builder(applicationContext)
         }
@@ -706,7 +707,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
         bitmapProvider.load(mediaMetadata.artworkUri) { bitmap ->
             maybeShowSongCoverInLockScreen()
-            notificationManager?.notify(NotificationId, builder.setLargeIcon(bitmap).build())
+            notificationManager?.notify(NOTIFICATION_ID, builder.setLargeIcon(bitmap).build())
         }
 
         return builder.build()
@@ -718,10 +719,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
         if (!isAtLeastAndroid8) return
 
         notificationManager?.run {
-            if (getNotificationChannel(NotificationChannelId) == null) {
+            if (getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
                 createNotificationChannel(
                     NotificationChannel(
-                        NotificationChannelId,
+                        NOTIFICATION_CHANNEL_ID,
                         "Now playing",
                         NotificationManager.IMPORTANCE_LOW
                     ).apply {
@@ -732,10 +733,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                 )
             }
 
-            if (getNotificationChannel(SleepTimerNotificationChannelId) == null) {
+            if (getNotificationChannel(SLEEP_TIMER_NOTIFICATION_CHANNEL_ID) == null) {
                 createNotificationChannel(
                     NotificationChannel(
-                        SleepTimerNotificationChannelId,
+                        SLEEP_TIMER_NOTIFICATION_CHANNEL_ID,
                         "Sleep timer",
                         NotificationManager.IMPORTANCE_LOW
                     ).apply {
@@ -906,7 +907,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
             timerJob = coroutineScope.timer(delayMillis) {
                 val notification = NotificationCompat
-                    .Builder(this@PlayerService, SleepTimerNotificationChannelId)
+                    .Builder(this@PlayerService, SLEEP_TIMER_NOTIFICATION_CHANNEL_ID)
                     .setContentTitle("Sleep timer ended")
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setAutoCancel(true)
@@ -915,7 +916,7 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
                     .setSmallIcon(R.drawable.app_icon)
                     .build()
 
-                notificationManager?.notify(SleepTimerNotificationId, notification)
+                notificationManager?.notify(SLEEP_TIMER_NOTIFICATION_ID, notification)
 
                 stopSelf()
                 exitProcess(0)
@@ -992,14 +993,14 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
 
     @JvmInline
     private value class Action(val value: String) {
-        context(Context)
-        val pendingIntent: PendingIntent
-            get() = PendingIntent.getBroadcast(
-                this@Context,
+        fun getPendingIntent(context: Context): PendingIntent {
+            return PendingIntent.getBroadcast(
+                context,
                 100,
-                Intent(value).setPackage(packageName),
+                Intent(value).setPackage(context.packageName),
                 PendingIntent.FLAG_UPDATE_CURRENT.or(if (isAtLeastAndroid6) PendingIntent.FLAG_IMMUTABLE else 0)
             )
+        }
 
         companion object {
             val pause = Action("it.vfsfitvnm.vimusic.pause")
@@ -1010,10 +1011,10 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
     }
 
     private companion object {
-        const val NotificationId = 1001
-        const val NotificationChannelId = "default_channel_id"
+        const val NOTIFICATION_ID = 1001
+        const val NOTIFICATION_CHANNEL_ID = "default_channel_id"
 
-        const val SleepTimerNotificationId = 1002
-        const val SleepTimerNotificationChannelId = "sleep_timer_channel_id"
+        const val SLEEP_TIMER_NOTIFICATION_ID = 1002
+        const val SLEEP_TIMER_NOTIFICATION_CHANNEL_ID = "sleep_timer_channel_id"
     }
 }

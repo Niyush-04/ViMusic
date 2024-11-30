@@ -10,9 +10,19 @@ import it.vfsfitvnm.vimusic.utils.getEnum
 import it.vfsfitvnm.vimusic.utils.preferences
 
 class MainApplication : Application(), ImageLoaderFactory {
+    companion object {
+        lateinit var instance: MainApplication
+        private set
+    }
+
     override fun onCreate() {
         super.onCreate()
-        DatabaseInitializer()
+        instance = this
+        initializeDatabase()
+    }
+
+    private fun initializeDatabase() {
+        DatabaseInitializer.initialize(applicationContext)
     }
 
     override fun newImageLoader(): ImageLoader {
