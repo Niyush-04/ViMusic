@@ -262,7 +262,11 @@ class PlayerService : InvincibleService(), Player.Listener, PlaybackStatsListene
             addAction(Action.previous.value)
         }
 
-        registerReceiver(notificationActionReceiver, filter)
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(notificationActionReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(notificationActionReceiver, filter)
+        }
 
         maybeResumePlaybackWhenDeviceConnected()
     }
