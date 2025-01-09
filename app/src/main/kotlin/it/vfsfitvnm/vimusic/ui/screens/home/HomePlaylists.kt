@@ -164,6 +164,7 @@ fun HomePlaylists(
                 PlaylistItem(
                     icon = R.drawable.heart,
                     colorTint = colorPalette.red,
+                    rotate = 0f,
                     name = "Favorites",
                     songCount = null,
                     thumbnailSizeDp = thumbnailSizeDp,
@@ -178,6 +179,7 @@ fun HomePlaylists(
                 PlaylistItem(
                     icon = R.drawable.airplane,
                     colorTint = colorPalette.blue,
+                    rotate = -45f,
                     name = "Offline",
                     songCount = null,
                     thumbnailSizeDp = thumbnailSizeDp,

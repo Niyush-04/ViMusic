@@ -19,8 +19,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,6 +50,7 @@ import kotlinx.coroutines.flow.map
 fun PlaylistItem(
     @DrawableRes icon: Int,
     colorTint: Color,
+    rotate: Float,
     name: String?,
     songCount: Int?,
     thumbnailSizeDp: Dp,
@@ -56,14 +59,23 @@ fun PlaylistItem(
 ) {
     PlaylistItem(
         thumbnailContent = {
-            Image(
-                painter = painterResource(icon),
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(colorTint),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(24.dp)
-            )
+            Box(modifier = Modifier
+                .size(thumbnailSizeDp)
+                .background(colorTint.copy(0.2f))) {
+                Image(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(colorTint),
+                    modifier = Modifier
+                        .size(120.dp)
+                        .align(Alignment.CenterStart)
+                        .graphicsLayer(
+                            clip = true,
+                            translationX = -75f
+                        )
+                        .rotate(rotate)
+                )
+            }
         },
         songCount = songCount,
         name = name,
