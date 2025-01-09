@@ -10,7 +10,9 @@ import android.os.Bundle
 import android.os.IBinder
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -42,13 +44,11 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -86,8 +86,6 @@ import it.vfsfitvnm.vimusic.utils.colorPaletteNameKey
 import it.vfsfitvnm.vimusic.utils.forcePlay
 import it.vfsfitvnm.vimusic.utils.getEnum
 import it.vfsfitvnm.vimusic.utils.intent
-import it.vfsfitvnm.vimusic.utils.isAtLeastAndroid6
-import it.vfsfitvnm.vimusic.utils.isAtLeastAndroid8
 import it.vfsfitvnm.vimusic.utils.preferences
 import it.vfsfitvnm.vimusic.utils.thumbnailRoundnessKey
 import it.vfsfitvnm.vimusic.utils.useSystemFontKey
@@ -128,13 +126,24 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
         @Suppress("DEPRECATION", "UNCHECKED_CAST")
         persistMap = lastCustomNonConfigurationInstance as? PersistMap ?: PersistMap()
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
         val launchedFromNotification = intent?.extras?.getBoolean("expandPlayerBottomSheet") == true
 
         setContent {
-            val coroutineScope = rememberCoroutineScope()
+            val darkColor = Color.Transparent
+            val lightColor = Color.Transparent
+
             val isSystemInDarkTheme = isSystemInDarkTheme()
+
+            enableEdgeToEdge(
+                statusBarStyle = if (isSystemInDarkTheme) {
+                    SystemBarStyle.dark(darkColor.hashCode())
+                } else SystemBarStyle.light(lightColor.hashCode(), lightColor.hashCode()),
+                navigationBarStyle = if (isSystemInDarkTheme) {
+                    SystemBarStyle.dark(darkColor.hashCode())
+                } else SystemBarStyle.light(lightColor.hashCode(), lightColor.hashCode())
+            )
+
+            val coroutineScope = rememberCoroutineScope()
 
             var appearance by rememberSaveable(
                 isSystemInDarkTheme,
@@ -152,12 +161,14 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
                     val colorPalette =
                         colorPaletteOf(colorPaletteName, colorPaletteMode, isSystemInDarkTheme)
 
-                    setSystemBarAppearance(colorPalette.isDark)
-
                     mutableStateOf(
                         Appearance(
                             colorPalette = colorPalette,
-                            typography = typographyOf(colorPalette.text, useSystemFont, applyFontPadding),
+                            typography = typographyOf(
+                                colorPalette.text,
+                                useSystemFont,
+                                applyFontPadding
+                            ),
                             thumbnailShape = thumbnailRoundness.shape()
                         )
                     )
@@ -180,8 +191,6 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
                                     isSystemInDarkTheme
                                 )
 
-                            setSystemBarAppearance(colorPalette.isDark)
-
                             appearance = appearance.copy(
                                 colorPalette = colorPalette,
                                 typography = appearance.typography.copy(colorPalette.text)
@@ -192,9 +201,6 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
 
                         bitmapListenerJob = coroutineScope.launch(Dispatchers.IO) {
                             dynamicColorPaletteOf(bitmap, isDark)?.let {
-                                withContext(Dispatchers.Main) {
-                                    setSystemBarAppearance(it.isDark)
-                                }
                                 appearance = appearance.copy(
                                     colorPalette = it,
                                     typography = appearance.typography.copy(it.text)
@@ -232,8 +238,6 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
                                         isSystemInDarkTheme
                                     )
 
-                                    setSystemBarAppearance(colorPalette.isDark)
-
                                     appearance = appearance.copy(
                                         colorPalette = colorPalette,
                                         typography = appearance.typography.copy(colorPalette.text),
@@ -251,11 +255,17 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
                             }
 
                             useSystemFontKey, applyFontPaddingKey -> {
-                                val useSystemFont = sharedPreferences.getBoolean(useSystemFontKey, false)
-                                val applyFontPadding = sharedPreferences.getBoolean(applyFontPaddingKey, false)
+                                val useSystemFont =
+                                    sharedPreferences.getBoolean(useSystemFontKey, false)
+                                val applyFontPadding =
+                                    sharedPreferences.getBoolean(applyFontPaddingKey, false)
 
                                 appearance = appearance.copy(
-                                    typography = typographyOf(appearance.colorPalette.text, useSystemFont, applyFontPadding),
+                                    typography = typographyOf(
+                                        appearance.colorPalette.text,
+                                        useSystemFont,
+                                        applyFontPadding
+                                    ),
                                 )
                             }
                         }
@@ -312,7 +322,10 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
 
                 val playerAwareWindowInsets by remember(bottomDp, playerBottomSheetState.value) {
                     derivedStateOf {
-                        val bottom = playerBottomSheetState.value.coerceIn(bottomDp, playerBottomSheetState.collapsedBound)
+                        val bottom = playerBottomSheetState.value.coerceIn(
+                            bottomDp,
+                            playerBottomSheetState.collapsedBound
+                        )
 
                         windowsInsets
                             .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
@@ -447,23 +460,6 @@ class MainActivity : ComponentActivity(), PersistMapOwner {
         }
 
         super.onDestroy()
-    }
-
-    private fun setSystemBarAppearance(isDark: Boolean) {
-        with(WindowCompat.getInsetsController(window, window.decorView.rootView)) {
-            isAppearanceLightStatusBars = !isDark
-            isAppearanceLightNavigationBars = !isDark
-        }
-
-        if (!isAtLeastAndroid6) {
-            window.statusBarColor =
-                (if (isDark) Color.Transparent else Color.Black.copy(alpha = 0.2f)).toArgb()
-        }
-
-        if (!isAtLeastAndroid8) {
-            window.navigationBarColor =
-                (if (isDark) Color.Transparent else Color.Black.copy(alpha = 0.2f)).toArgb()
-        }
     }
 }
 
