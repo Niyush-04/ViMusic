@@ -13,8 +13,8 @@ android {
         applicationId = "it.vfsfitvnm.vimusic"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 21
-        versionName = "0.6.0"
+        versionCode = 22
+        versionName = "0.6.1"
     }
 
     buildTypes {
