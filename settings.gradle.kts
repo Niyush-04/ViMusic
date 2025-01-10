@@ -21,7 +21,6 @@ dependencyResolutionManagement {
 rootProject.name = "ViMusic"
 include(":app")
 include(":compose-routing")
-include(":compose-reordering")
 include(":compose-persist")
 include(":innertube")
 include(":ktor-client-brotli")

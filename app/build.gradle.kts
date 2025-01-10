@@ -55,7 +55,6 @@ ksp {
 
 dependencies {
     implementation(projects.composePersist)
-    implementation(projects.composeReordering)
     implementation(projects.composeRouting)
     implementation(projects.innertube)
     implementation(projects.kugou)
@@ -70,6 +69,7 @@ dependencies {
     implementation(libs.compose.ui.util)
     implementation(libs.exoplayer)
     implementation(libs.palette)
+    implementation(libs.reorderable)
     implementation(libs.room)
     coreLibraryDesugaring(libs.desugaring)
     ksp(libs.room.compiler)

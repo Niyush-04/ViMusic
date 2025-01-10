@@ -34,12 +34,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,10 +56,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import com.valentinilk.shimmer.shimmer
-import it.vfsfitvnm.compose.reordering.animateItemPlacement
-import it.vfsfitvnm.compose.reordering.draggedItem
-import it.vfsfitvnm.compose.reordering.rememberReorderingState
-import it.vfsfitvnm.compose.reordering.reorder
 import it.vfsfitvnm.vimusic.LocalPlayerServiceBinder
 import it.vfsfitvnm.vimusic.R
 import it.vfsfitvnm.vimusic.ui.components.BottomSheet
@@ -83,6 +80,8 @@ import it.vfsfitvnm.vimusic.utils.shuffleQueue
 import it.vfsfitvnm.vimusic.utils.smoothScrollToTop
 import it.vfsfitvnm.vimusic.utils.windows
 import kotlinx.coroutines.launch
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
@@ -99,6 +98,8 @@ fun Queue(
 
     val horizontalBottomPaddingValues = windowInsets
         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom).asPaddingValues()
+
+    val coroutineScope = rememberCoroutineScope()
 
     BottomSheet(
         state = layoutState,
@@ -118,7 +119,6 @@ fun Queue(
                         .align(Alignment.Center)
                         .size(18.dp)
                 )
-
                 content()
             }
         }
@@ -137,16 +137,12 @@ fun Queue(
         val thumbnailSizePx = thumbnailSizeDp.px
 
         var mediaItemIndex by remember {
-            mutableStateOf(if (player.mediaItemCount == 0) -1 else player.currentMediaItemIndex)
+            mutableIntStateOf(if (player.mediaItemCount == 0) -1 else player.currentMediaItemIndex)
         }
 
-        var windows by remember {
-            mutableStateOf(player.currentTimeline.windows)
-        }
+        var windows by remember { mutableStateOf(player.currentTimeline.windows) }
 
-        var shouldBePlaying by remember {
-            mutableStateOf(binder.player.shouldBePlaying)
-        }
+        var shouldBePlaying by remember { mutableStateOf(binder.player.shouldBePlaying) }
 
         player.DisposableListener {
             object : Player.Listener {
@@ -171,12 +167,10 @@ fun Queue(
             }
         }
 
-        val reorderingState = rememberReorderingState(
-            lazyListState = rememberLazyListState(initialFirstVisibleItemIndex = mediaItemIndex),
-            key = windows,
-            onDragEnd = player::moveMediaItem,
-            extraItemCount = 0
-        )
+        val lazyListState = rememberLazyListState(initialFirstVisibleItemIndex = mediaItemIndex)
+        val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+            player.moveMediaItem(from.index, to.index)
+        }
 
         val rippleIndication = ripple(bounded = false)
 
@@ -188,8 +182,8 @@ fun Queue(
                     .background(colorPalette.background1)
                     .weight(1f)
             ) {
-
                 LazyColumn(
+                    state = lazyListState,
                     contentPadding = windowInsets
                         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
                         .asPaddingValues(),
@@ -204,58 +198,58 @@ fun Queue(
                     ) { window ->
                         val isPlayingThisMediaItem = mediaItemIndex == window.firstPeriodIndex
 
-                        SongItem(
-                            song = window.mediaItem,
-                            thumbnailSizePx = thumbnailSizePx,
-                            thumbnailSizeDp = thumbnailSizeDp,
-                            onThumbnailContent = {
-                                musicBarsTransition.AnimatedVisibility(
-                                    visible = { it == window.firstPeriodIndex },
-                                    enter = fadeIn(tween(800)),
-                                    exit = fadeOut(tween(800)),
-                                ) {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .background(
-                                                color = Color.Black.copy(alpha = 0.25f),
-                                                shape = thumbnailShape
-                                            )
-                                            .size(Dimensions.thumbnails.song)
+                        ReorderableItem(
+                            state = reorderableLazyListState,
+                            key = window.uid.hashCode()
+                        ) {
+                            SongItem(
+                                song = window.mediaItem,
+                                thumbnailSizePx = thumbnailSizePx,
+                                thumbnailSizeDp = thumbnailSizeDp,
+                                onThumbnailContent = {
+                                    musicBarsTransition.AnimatedVisibility(
+                                        visible = { it == window.firstPeriodIndex },
+                                        enter = fadeIn(tween(800)),
+                                        exit = fadeOut(tween(800)),
                                     ) {
-                                        if (shouldBePlaying) {
-                                            MusicBars(
-                                                color = colorPalette.onOverlay,
-                                                modifier = Modifier
-                                                    .height(24.dp)
-                                            )
-                                        } else {
-                                            Image(
-                                                painter = painterResource(R.drawable.play),
-                                                contentDescription = null,
-                                                colorFilter = ColorFilter.tint(colorPalette.onOverlay),
-                                                modifier = Modifier
-                                                    .size(24.dp)
-                                            )
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .background(
+                                                    color = Color.Black.copy(alpha = 0.25f),
+                                                    shape = thumbnailShape
+                                                )
+                                                .size(Dimensions.thumbnails.song)
+                                        ) {
+                                            if (shouldBePlaying) {
+                                                MusicBars(
+                                                    color = colorPalette.onOverlay,
+                                                    modifier = Modifier
+                                                        .height(24.dp)
+                                                )
+                                            } else {
+                                                Image(
+                                                    painter = painterResource(R.drawable.play),
+                                                    contentDescription = null,
+                                                    colorFilter = ColorFilter.tint(colorPalette.onOverlay),
+                                                    modifier = Modifier
+                                                        .size(24.dp)
+                                                )
+                                            }
                                         }
                                     }
-                                }
-                            },
-                            trailingContent = {
-                                IconButton(
-                                    icon = R.drawable.reorder,
-                                    color = colorPalette.textDisabled,
-                                    indication = rippleIndication,
-                                    onClick = {},
-                                    modifier = Modifier
-                                        .reorder(
-                                            reorderingState = reorderingState,
-                                            index = window.firstPeriodIndex
-                                        )
-                                        .size(18.dp)
-                                )
-                            },
-                            modifier = animateItemPlacement(
+                                },
+                                trailingContent = {
+                                    IconButton(
+                                        icon = R.drawable.reorder,
+                                        color = colorPalette.textDisabled,
+                                        indication = rippleIndication,
+                                        onClick = {},
+                                        modifier = Modifier
+                                            .draggableHandle()
+                                            .size(18.dp)
+                                    )
+                                },
                                 modifier = Modifier
                                     .combinedClickable(
                                         onLongClick = {
@@ -279,14 +273,9 @@ fun Queue(
                                                 player.playWhenReady = true
                                             }
                                         }
-                                    )
-                                    .draggedItem(
-                                        reorderingState = reorderingState,
-                                        index = window.firstPeriodIndex
                                     ),
-                                reorderingState = reorderingState
                             )
-                        )
+                        }
                     }
 
                     item {
@@ -309,20 +298,19 @@ fun Queue(
                 }
 
                 FloatingActionsContainerWithScrollToTop(
-                    lazyListState = reorderingState.lazyListState,
+                    lazyListState = lazyListState,
                     iconId = R.drawable.shuffle,
-                    visible = !reorderingState.isDragging,
+                    visible = !reorderableLazyListState.isAnyItemDragging,
                     windowInsets = windowInsets.only(WindowInsetsSides.Horizontal),
                     onClick = {
-                        reorderingState.coroutineScope.launch {
-                            reorderingState.lazyListState.smoothScrollToTop()
+                        coroutineScope.launch {
+                            lazyListState.smoothScrollToTop()
                         }.invokeOnCompletion {
                             player.shuffleQueue()
                         }
                     }
                 )
             }
-
 
             Box(
                 modifier = Modifier

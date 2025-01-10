@@ -25,10 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import it.vfsfitvnm.compose.persist.persist
-import it.vfsfitvnm.compose.reordering.animateItemPlacement
-import it.vfsfitvnm.compose.reordering.draggedItem
-import it.vfsfitvnm.compose.reordering.rememberReorderingState
-import it.vfsfitvnm.compose.reordering.reorder
 import it.vfsfitvnm.innertube.Innertube
 import it.vfsfitvnm.innertube.models.bodies.BrowseBody
 import it.vfsfitvnm.innertube.requests.playlistPage
@@ -65,6 +61,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
@@ -85,20 +83,13 @@ fun LocalPlaylistSongs(
 
     val lazyListState = rememberLazyListState()
 
-    val reorderingState = rememberReorderingState(
-        lazyListState = lazyListState,
-        key = playlistWithSongs?.songs ?: emptyList<Any>(),
-        onDragEnd = { fromIndex, toIndex ->
-            query {
-                Database.move(playlistId, fromIndex, toIndex)
-            }
-        },
-        extraItemCount = 1
-    )
-
-    var isRenaming by rememberSaveable {
-        mutableStateOf(false)
+    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        query {
+            Database.move(playlistId, from.index, to.index)
+        }
     }
+
+    var isRenaming by rememberSaveable { mutableStateOf(false) }
 
     if (isRenaming) {
         TextFieldDialog(
@@ -137,6 +128,7 @@ fun LocalPlaylistSongs(
 
     Box {
         LazyColumn(
+            state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current
                 .only(WindowInsetsSides.Vertical + WindowInsetsSides.End).asPaddingValues(),
             modifier = Modifier
@@ -164,10 +156,7 @@ fun LocalPlaylistSongs(
                         }
                     )
 
-                    Spacer(
-                        modifier = Modifier
-                            .weight(1f)
-                    )
+                    Spacer(modifier = Modifier.weight(1f))
 
                     HeaderIconButton(
                         icon = R.drawable.ellipsis_horizontal,
@@ -240,22 +229,25 @@ fun LocalPlaylistSongs(
                 key = { _, song -> song.id },
                 contentType = { _, song -> song },
             ) { index, song ->
-                SongItem(
-                    song = song,
-                    thumbnailSizePx = thumbnailSizePx,
-                    thumbnailSizeDp = thumbnailSizeDp,
-                    trailingContent = {
-                        IconButton(
-                            icon = R.drawable.reorder,
-                            color = colorPalette.textDisabled,
-                            indication = rippleIndication,
-                            onClick = {},
-                            modifier = Modifier
-                                .reorder(reorderingState = reorderingState, index = index)
-                                .size(18.dp)
-                        )
-                    },
-                    modifier = animateItemPlacement(
+                ReorderableItem(
+                    state = reorderableLazyListState,
+                    key = song.id
+                ) {
+                    SongItem(
+                        song = song,
+                        thumbnailSizePx = thumbnailSizePx,
+                        thumbnailSizeDp = thumbnailSizeDp,
+                        trailingContent = {
+                            IconButton(
+                                icon = R.drawable.reorder,
+                                color = colorPalette.textDisabled,
+                                indication = rippleIndication,
+                                onClick = {},
+                                modifier = Modifier
+                                    .draggableHandle()
+                                    .size(18.dp)
+                            )
+                        },
                         modifier = Modifier
                             .combinedClickable(
                                 onLongClick = {
@@ -277,17 +269,15 @@ fun LocalPlaylistSongs(
                                         }
                                 }
                             )
-                            .draggedItem(reorderingState = reorderingState, index = index),
-                        reorderingState = reorderingState
                     )
-                )
+                }
             }
         }
 
         FloatingActionsContainerWithScrollToTop(
             lazyListState = lazyListState,
             iconId = R.drawable.shuffle,
-            visible = !reorderingState.isDragging,
+            visible = !reorderableLazyListState.isAnyItemDragging,
             onClick = {
                 playlistWithSongs?.songs?.let { songs ->
                     if (songs.isNotEmpty()) {

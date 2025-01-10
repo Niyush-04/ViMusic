@@ -17,6 +17,7 @@ media3 = "1.5.1"
 # @keep
 minSdk = "21"
 palette = "1.0.0"
+reorderable = "2.4.2"
 room = "2.6.1"
 # @keep
 targetSdk = "35"
@@ -44,6 +45,7 @@ ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", versi
 ktor-client-serialization = { group = "io.ktor", name = "ktor-client-serialization", version.ref = "ktor" }
 ktor-serialization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 palette = { group = "androidx.palette", name = "palette", version.ref = "palette" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 room = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
