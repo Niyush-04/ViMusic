@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.9.3"
-agp = "8.7.3"
+agp = "8.8.0"
 brotli = "0.1.2"
 coil = "2.7.0"
 # @keep
