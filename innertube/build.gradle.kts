@@ -3,6 +3,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+sourceSets.all {
+    java.srcDir("src/$name/kotlin")
+}
+
 dependencies {
     implementation(projects.ktorClientBrotli)
     implementation(libs.ktor.client.core)
