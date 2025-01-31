@@ -15,7 +15,6 @@ import io.ktor.serialization.kotlinx.json.json
 import it.vfsfitvnm.innertube.models.NavigationEndpoint
 import it.vfsfitvnm.innertube.models.Runs
 import it.vfsfitvnm.innertube.models.Thumbnail
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 object Innertube {
@@ -25,7 +24,6 @@ object Innertube {
         expectSuccess = true
 
         install(ContentNegotiation) {
-            @OptIn(ExperimentalSerializationApi::class)
             json(Json {
                 ignoreUnknownKeys = true
                 explicitNulls = false
